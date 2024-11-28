@@ -19,7 +19,10 @@ def setup_debugpy(endpoint="localhost", port=5678, rank=0, force=False):
 
     # print(colored(f"rank: {get_rank()}, is_main_process: {is_main_process()}", "red"))
     if force:
-        run_cmd("ps aux | grep /debugpy/adapter | awk '{print $2}' | xargs kill -9", fault_tolerance=True)
+        run_cmd(
+            "ps aux | grep /debugpy/adapter | awk '{print $2}' | xargs kill -9",
+            fault_tolerance=True,
+        )
         print(colored("Force killed debugpy", "red"))
     try:
         debugpy.listen((endpoint, port))

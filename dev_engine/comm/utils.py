@@ -7,11 +7,12 @@ This is useful when doing distributed training.
 """
 
 import functools
+import os
+from contextlib import contextmanager
+
 import numpy as np
 import torch
 import torch.distributed as torch_dist
-import os
-from contextlib import contextmanager
 from torch.distributed import broadcast
 
 _LOCAL_PROCESS_GROUP = None
@@ -34,6 +35,7 @@ def init_dist(backend="nccl", init_backend="torch", **kwargs):
         torch_dist.init_process_group(backend=backend, init_method="env://", **kwargs)
     elif init_backend == "deepspeed":
         import deepspeed
+
         deepspeed.init_distributed(dist_backend=backend, auto_mpi_discovery=False, **kwargs)
     local_rank = get_local_rank()
     print(f"Initialized rank {get_rank()} with local rank {local_rank}")
@@ -162,7 +164,9 @@ def all_gather_variable(data, lengths=None, requires_grad=False, group=None):
     This implementation supposedly supports grad backprop (not verified yet)
     """
     world_size = get_world_size()
-    assert len(lengths) == world_size, f"len(lengths) must match world size: lengths({len(lengths)}) vs world_size({world_size})"
+    assert (
+        len(lengths) == world_size
+    ), f"len(lengths) must match world size: lengths({len(lengths)}) vs world_size({world_size})"
     if lengths is None:
         _length = torch.tensor(data.shape[0], dtype=torch.int)
         lengths = [_.item() for _ in all_gather(_length)]
@@ -171,7 +175,10 @@ def all_gather_variable(data, lengths=None, requires_grad=False, group=None):
 
     pad_length = max_length - data.shape[0]
     if pad_length > 0:
-        data = torch.cat([data, torch.zeros(pad_length, *data.shape[1:], dtype=data.dtype, device=data.device)], dim=0)
+        data = torch.cat(
+            [data, torch.zeros(pad_length, *data.shape[1:], dtype=data.dtype, device=data.device)],
+            dim=0,
+        )
     padded_list = all_gather(data, requires_grad=requires_grad, group=group)
     ret_list = [padded[:length] for padded, length in zip(padded_list, lengths)]
     return ret_list
