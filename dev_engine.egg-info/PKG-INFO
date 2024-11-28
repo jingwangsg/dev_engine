@@ -1,0 +1,71 @@
+Metadata-Version: 2.1
+Name: dev_engine
+Version: 0.1.0
+Author-email: jing <jing005@e.ntu.edu.sg>
+Classifier: Development Status :: 3 - Alpha
+Classifier: Programming Language :: Python :: 3
+Classifier: Topic :: Scientific/Engineering :: Artificial Intelligence
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+Requires-Dist: torch>=2.3.0
+Requires-Dist: torchvision
+Requires-Dist: transformers
+Requires-Dist: tokenizers
+Requires-Dist: sentencepiece
+Requires-Dist: accelerate
+Requires-Dist: peft
+Requires-Dist: bitsandbytes
+Requires-Dist: decord
+Requires-Dist: datasets
+Requires-Dist: webdataset
+Requires-Dist: polars
+Requires-Dist: pytorchvideo==0.1.5
+Requires-Dist: opencv-python==4.8.0.74
+Requires-Dist: timm==0.9.12
+Requires-Dist: scipy==1.12.0
+Requires-Dist: openpyxl==3.1.2
+Requires-Dist: openai==1.8.0
+Requires-Dist: nltk==3.3
+Requires-Dist: pywsd==1.2.4
+Requires-Dist: s2wrapper@ git+https://github.com/bfshi/scaling_on_scales
+Requires-Dist: shortuuid==1.0.13
+Requires-Dist: pytorch-msssim==1.0.0
+Requires-Dist: lpips==0.1.4
+Requires-Dist: moviepy==1.0.3
+Requires-Dist: imageio==2.34.2
+Requires-Dist: numpy==1.26.4
+Requires-Dist: matplotlib==3.9.1
+Requires-Dist: ray==2.32.0
+Requires-Dist: hydra-core==1.3.2
+Requires-Dist: omegaconf==2.3.0
+Requires-Dist: mediapy==1.2.2
+Requires-Dist: pathos==0.3.0
+Requires-Dist: h5py==3.11.0
+Provides-Extra: train
+Requires-Dist: ninja; extra == "train"
+Requires-Dist: wandb; extra == "train"
+Requires-Dist: numpy; extra == "train"
+Requires-Dist: pathos; extra == "train"
+Requires-Dist: polars; extra == "train"
+Provides-Extra: dev
+Requires-Dist: ruff; extra == "dev"
+Requires-Dist: mypy>=1.0; extra == "dev"
+Requires-Dist: black>=23.0; extra == "dev"
+Requires-Dist: isort>=5.12; extra == "dev"
+Requires-Dist: pytest; extra == "dev"
+Requires-Dist: pytest-sphinx; extra == "dev"
+Requires-Dist: pytest-cov; extra == "dev"
+Requires-Dist: twine>=1.11.0; extra == "dev"
+Requires-Dist: build; extra == "dev"
+Requires-Dist: setuptools; extra == "dev"
+Requires-Dist: wheel; extra == "dev"
+Requires-Dist: Sphinx>=4.3.0; extra == "dev"
+Requires-Dist: furo>=2023.7.26; extra == "dev"
+Requires-Dist: myst-parser>=1.0; extra == "dev"
+Requires-Dist: sphinx-copybutton>=0.5.2; extra == "dev"
+Requires-Dist: sphinx-autobuild>=2021.3.14; extra == "dev"
+Requires-Dist: sphinx-autodoc-typehints>=1.23.3; extra == "dev"
+Requires-Dist: packaging; extra == "dev"
+
+# dev_engine
+An engine for swift development, composed of numerous useful functions and scripts.
