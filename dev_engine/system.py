@@ -1,7 +1,7 @@
 import subprocess
 
 
-def run_cmd(cmd, verbose=False, async_cmd=False, fault_tolerance=False):
+def run_cmd(cmd: str, verbose: bool=False, async_cmd: bool=False, fault_tolerance: bool=False) -> subprocess.CompletedProcess:
     # print(cmd)
     if verbose:
         assert not async_cmd, "async_cmd is not supported when verbose=True"

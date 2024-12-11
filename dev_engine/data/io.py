@@ -1,34 +1,94 @@
-import os
+import json
+from typing import Sequence
 
-import debugpy
-from termcolor import colored
-
-from dev_engine.comm import get_rank, synchronize
-from dev_engine.system import run_cmd
+import dill
 
 
-def setup_debugpy(endpoint="localhost", port=5678, rank=0, force=False):
-    if "DEBUGPY" not in os.environ:
-        return
-    rank = int(os.getenv("DEBUGPY_RANK", rank))
-    port = int(os.getenv("DEBUGPY_PORT", port))
-    endpoint = os.getenv("DEBUGPY_ENDPOINT", endpoint)
-    if get_rank() != rank:
-        synchronize()
-        return
+def load_json(fn):
+    with open(fn, "r", encoding="utf-8") as f:
+        return json.load(f)
 
-    # print(colored(f"rank: {get_rank()}, is_main_process: {is_main_process()}", "red"))
-    if force:
-        run_cmd(
-            "ps aux | grep /debugpy/adapter | awk '{print $2}' | xargs kill -9",
-            fault_tolerance=True,
+
+def save_json(obj: dict, fn):
+    with open(fn, "w", encoding="utf-8") as f:
+        json.dump(obj, f, indent=4)
+
+
+def load_jsonl(fn, as_generator=False):
+    with open(fn, "r", encoding="utf-8") as f:
+        # FIXME: as_generator not working
+        # if as_generator:
+        #     for line in f:
+        #         yield json.loads(line)
+        # else:
+        return [json.loads(line) for line in f]
+
+
+def save_jsonl(obj: Sequence[dict], fn):
+    with open(fn, "w", encoding="utf-8") as f:
+        for line in obj:
+            json.dump(line, f)
+            f.write("\n")
+
+
+def load_pickle(fn):
+    # return joblib.load(fn)
+    with open(fn, "rb") as f:
+        obj = dill.load(f)
+    return obj
+
+
+def save_pickle(obj, fn):
+    # return joblib.dump(obj, fn, protocol=pickle.HIGHEST_PROTOCOL)
+    with open(fn, "wb") as f:
+        dill.dump(obj, f, protocol=dill.HIGHEST_PROTOCOL)
+
+
+import polars as pl
+
+
+def load_csv(fn, delimiter=",", has_header=True):
+    fr = open(fn, "r")
+    encodings = ["ISO-8859-1", "cp1252", "utf-8"]
+
+    # Try using different encoding formats
+    def _load_csv_with_encoding(encoding):
+        read_csv = pl.read_csv(
+            fn,
+            separator=delimiter,
+            encoding=encoding,
+            infer_schema_length=0,
+            has_header=has_header,
+            n_threads=32,
         )
-        print(colored("Force killed debugpy", "red"))
-    try:
-        debugpy.listen((endpoint, port))
-        print(colored(f"Waiting for debugger attach on {endpoint}:{port}", "red"))
-        debugpy.wait_for_client()
-    except:
-        print(colored(f"Failed to setup debugpy, {endpoint}:{port} occupied", "red"))
 
-    synchronize()
+        if has_header:
+            return read_csv.to_dicts()
+        else:
+            ret_list = []
+            dict_list = read_csv.to_dicts()
+            num_columns = len(dict_list[0].keys())
+
+            for dict_row in dict_list:
+                row_list = []
+                for col_idx in range(1, num_columns + 1):
+                    column_name = f"column_{col_idx}"
+                    row_list += [dict_row[column_name]]
+                ret_list += [row_list]
+
+            return ret_list
+
+    for encoding in encodings:
+        try:
+            df = _load_csv_with_encoding(encoding)
+            return df
+
+        except UnicodeDecodeError:
+            print(f"Error: {encoding} decoding failed, trying the next encoding format")
+
+    raise ValueError(f"Failed to load csv file {fn}")
+
+
+def save_csv(obj, fn, delimiter=","):
+    df = pl.DataFrame(obj)
+    df.write_csv(fn, separator=delimiter, quote_style="non_numeric")
