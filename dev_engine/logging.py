@@ -1,7 +1,7 @@
-import functools
-import inspect
 import os
 from functools import partial
+import inspect
+import functools
 
 _GLOBAL_COUNTER = {}
 
@@ -13,7 +13,7 @@ def run_first_n(n):
             caller_frame = inspect.stack()[1]
             caller_info = (caller_frame.filename, caller_frame.lineno)
 
-            name = (hash(func), caller_info)
+            name = caller_info
 
             current_count = _GLOBAL_COUNTER.get(name, 0)
             if current_count < n:
@@ -32,7 +32,7 @@ def run_every_n(n):
             caller_frame = inspect.stack()[1]
             caller_info = (caller_frame.filename, caller_frame.lineno)
 
-            name = (hash(func), caller_info)
+            name = caller_info
 
             current_count = _GLOBAL_COUNTER.get(name, 0)
             if current_count % n == 0:
@@ -55,3 +55,9 @@ def print_every_n(n):
 
 def rprint_every_n(n, rank=0):
     return run_every_n(n)(partial(rprint, rank=rank))
+
+def print_first_n(n):
+    return run_first_n(n)(print)
+
+def rprint_first_n(n, rank=0):
+    return run_first_n(n)(partial(rprint, rank=rank))
