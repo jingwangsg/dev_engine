@@ -1,7 +1,7 @@
+import functools
+import inspect
 import os
 from functools import partial
-import inspect
-import functools
 
 _GLOBAL_COUNTER = {}
 

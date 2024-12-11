@@ -1,1 +1,1 @@
-from .debugpy import setup_debugpy, main
+from .debugpy import main, setup_debugpy

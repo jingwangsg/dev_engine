@@ -1,10 +1,12 @@
-import os
-import sys
-import runpy
 import getopt
+import importlib.util
+import os
+import runpy
+import sys
+
 import debugpy
 from termcolor import colored
-import importlib.util
+
 
 def setup_debugpy(endpoint="localhost", port=5678, ranks=[0]):
     if "DEBUGPY" not in os.environ:
@@ -25,7 +27,9 @@ def setup_debugpy(endpoint="localhost", port=5678, ranks=[0]):
         print(colored(f"Waiting for debugger attach on {endpoint}:{port}", "red"))
         debugpy.wait_for_client()
     except Exception as e:
-        print(colored(f"Failed to setup debugpy on {endpoint}:{port}. Error: {e}", "red"))
+        print(
+            colored(f"Failed to setup debugpy on {endpoint}:{port}. Error: {e}", "red")
+        )
 
 
 def main():
