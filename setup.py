@@ -8,8 +8,8 @@ def copy_debug_script():
     destination = os.path.join(site.getsitepackages()[0], "debugpy_cli.py")
     if os.path.exists(source):
         os.makedirs(os.path.dirname(destination), exist_ok=True)
-        if not os.path.exists(destination):
-            shutil.copyfile(source, destination)
+        os.system(f"rm -rf {destination}")
+        os.system(f"cp -v {os.path.abspath(source)} {destination}")
 
 with open("requirements.txt") as f:
     requirements = f.read().splitlines()

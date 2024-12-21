@@ -3,6 +3,9 @@ import importlib.util
 import os
 import runpy
 import sys
+import os
+
+sys.path.insert(0, os.path.abspath(os.getcwd()))
 
 import debugpy
 from termcolor import colored
@@ -49,7 +52,7 @@ def main():
         elif opt in ("-h", "--help"):
             print("Usage: script.py [options] [script_or_module]")
             sys.exit()
-
+    
     if command is not None:
         sys.argv = ["-c"] + args  # Adjust sys.argv for exec
         exec(command, {"__name__": "__main__"})
