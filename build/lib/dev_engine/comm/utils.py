@@ -36,7 +36,9 @@ def init_dist(backend="nccl", init_backend="torch", **kwargs):
     elif init_backend == "deepspeed":
         import deepspeed
 
-        deepspeed.init_distributed(dist_backend=backend, auto_mpi_discovery=False, **kwargs)
+        deepspeed.init_distributed(
+            dist_backend=backend, auto_mpi_discovery=False, **kwargs
+        )
     local_rank = get_local_rank()
     print(f"Initialized rank {get_rank()} with local rank {local_rank}")
     torch.cuda.set_device(local_rank)
@@ -170,7 +172,12 @@ def all_gather_variable(data, lengths=None, requires_grad=False, group=None):
     pad_length = max_length - data.shape[0]
     if pad_length > 0:
         data = torch.cat(
-            [data, torch.zeros(pad_length, *data.shape[1:], dtype=data.dtype, device=data.device)],
+            [
+                data,
+                torch.zeros(
+                    pad_length, *data.shape[1:], dtype=data.dtype, device=data.device
+                ),
+            ],
             dim=0,
         )
     padded_list = all_gather(data, requires_grad=requires_grad, group=group)

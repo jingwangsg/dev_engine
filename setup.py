@@ -3,13 +3,23 @@ import site
 import shutil
 import os
 
-def copy_debug_script():
-    source = "dev_engine/debug/debugpy.py"
-    destination = os.path.join(site.getsitepackages()[0], "debugpy_cli.py")
+def copy_file(source, destination):
     if os.path.exists(source):
         os.makedirs(os.path.dirname(destination), exist_ok=True)
         os.system(f"rm -rf {destination}")
         os.system(f"cp -v {os.path.abspath(source)} {destination}")
+
+def copy_debug_script():
+    print("Copying debugpy_cli.py")
+    source = "dev_engine/debug/debugpy_utils.py"
+    destination = os.path.join(site.getsitepackages()[0], "debugpy_cli.py")
+    copy_file(source, destination)
+
+def copy_bkpt_script():
+    print("Copying bkpt.py")
+    source = "dev_engine/debug/bkpt.py"
+    destination = os.path.join(site.getsitepackages()[0], "bkpt.py")
+    copy_file(source, destination)
 
 with open("requirements.txt") as f:
     requirements = f.read().splitlines()
@@ -36,3 +46,4 @@ setup(
 )
 
 copy_debug_script()
+copy_bkpt_script()

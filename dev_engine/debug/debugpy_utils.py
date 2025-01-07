@@ -4,6 +4,7 @@ import os
 import runpy
 import sys
 import os
+import torch.distributed as dist
 
 sys.path.insert(0, os.path.abspath(os.getcwd()))
 

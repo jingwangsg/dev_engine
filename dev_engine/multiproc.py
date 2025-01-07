@@ -3,6 +3,7 @@ import threading
 import time
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, wait
 from queue import Empty, Queue
+import multiprocessing as mp
 
 from pathos.multiprocessing import Pool, ProcessPool, ThreadingPool
 from tqdm import tqdm
@@ -18,97 +19,137 @@ def _run_sequential(iterable, func, desc="", verbose=True):
     return ret
 
 
-def imap_async(iterable, func, num_process=32):
-    if os.getenv("DISABLE_PARALLEL", False):
-        for it in iterable:
-            yield it, func(it)
+class imap_async:
+    def __init__(
+        self,
+        iterable,
+        func,
+        num_workers=32,
+        fail_condition=lambda x: x is None,
+        mode="thread",
+    ):
+        self.iterable = iterable
+        self.func = func
+        self.num_workers = num_workers
+        self.fail_condition = fail_condition
+        self.task_queue = mp.Manager().Queue() if mode == "process" else Queue()
+        self.not_done = set()
+        self.iterable_is_over = False
+        self.producer_thread = None
 
-    task_queue = Queue()
+        if not os.getenv("DISABLE_PARALLEL", False):
+            if mode == "thread":
+                self.executor = ThreadPoolExecutor(num_workers)
+            elif mode == "process":
+                self.executor = ProcessPool(num_workers)
+            else:
+                raise ValueError("mode should be either 'thread' or 'process'")
+        else:
+            self.executor = None
 
-    def producer():
-        for item in iterable:
-            task_queue.put(item)
-        task_queue.put(None)
+    def _producer(self):
+        for item in self.iterable:
+            self.task_queue.put(item)
+        self.task_queue.put(None)
 
-    producer_thread = threading.Thread(target=producer)
-    producer_thread.start()
+    def start_producer(self):
+        self.producer_thread = threading.Thread(target=self._producer)
+        self.producer_thread.start()
 
-    with ProcessPool(num_process) as executor:
-        not_done = set()
-        iterable_is_over = False
+    def __iter__(self):
+        if os.getenv("DISABLE_PARALLEL", False):
+            for it in self.iterable:
+                yield it, self.func(it)
+            return
+
+        self.start_producer()
 
         while True:
+            # Fetch new tasks and submit to the process pool
             while True:
                 try:
-                    item = task_queue.get_nowait()
-                    print(item)
+                    item = self.task_queue.get_nowait()
                     if item is None:
-                        iterable_is_over = True
+                        self.iterable_is_over = True
                         break
 
-                    future = executor.apipe(func, item)
+                    future = self.executor.apipe(self.func, item)
                     future._input = item
-                    not_done.add(future)
+                    self.not_done.add(future)
                 except Empty:
                     break
 
-            done, not_done = apipe_wait(not_done, timeout=0.1)
+            # Collect results from completed tasks
+            done, self.not_done = self._apipe_wait(self.not_done, timeout=0.1)
             for future in done:
-                yield future._input, future.get()
+                ret = future.get()
+                if self.fail_condition(ret):
+                    self.task_queue.put(future._input)  # Re-add failed tasks
+                    continue
+                yield future._input, ret
 
-            if len(not_done) == 0 and iterable_is_over:
+            # Exit condition: all tasks completed and iterable is exhausted
+            if len(self.not_done) == 0 and self.iterable_is_over:
                 break
 
-        time.sleep(1)
+            time.sleep(1)
 
-    producer_thread.join()
+        self.producer_thread.join()
 
+    def _apipe_wait(self, not_done, timeout):
+        done = set()
+        remaining = set()
+        for future in not_done:
+            if future.ready():
+                done.add(future)
+            else:
+                remaining.add(future)
+        return done, remaining
 
-def imap_async_with_thread(iterable, func, num_thread=32):
-    if os.getenv("DISABLE_PARALLEL", False):
-        for it in iterable:
-            yield it, func(it)
-
-    task_queue = Queue()
-
-    def producer():
-        for item in iterable:
-            task_queue.put(item)
-        task_queue.put(None)
-
-    producer_thread = threading.Thread(target=producer)
-    producer_thread.start()
-
-    with ThreadingPool(num_thread) as executor:
-        not_done = set()
-        iterable_is_over = False
-
-        while True:
-            while True:
-                try:
-                    item = task_queue.get_nowait()
-                    if item is None:
-                        iterable_is_over = True
-                        break
-                    future = executor.apipe(func, item)
-                    future._input = item
-                    not_done.add(future)
-                except Empty:
-                    break
-
-            done, not_done = apipe_wait(not_done, timeout=0.1)
-            for future in done:
-                yield future._input, future.get()
-
-            if len(not_done) == 0 and iterable_is_over:
-                break
-
-        time.sleep(1)
-
-    producer_thread.join()
+    def close(self):
+        if self.executor:
+            self.executor.close()
+        if self.producer_thread:
+            self.producer_thread.join()
 
 
 def map_async(
+    iterable,
+    func,
+    num_workers=30,
+    chunksize=1,
+    desc="",
+    total=None,
+    test_flag=False,
+    verbose=True,
+    mode="thread",
+):
+    if mode == "thread":
+        return _map_async_with_thread(
+            iterable,
+            func,
+            num_thread=num_workers,
+            desc=desc,
+            verbose=verbose,
+            test_flag=test_flag,
+            total=total,
+        )
+    elif mode == "process":
+        return _map_async(
+            iterable,
+            func,
+            num_process=num_workers,
+            chunksize=chunksize,
+            desc=desc,
+            total=total,
+            test_flag=test_flag,
+            verbose=verbose,
+        )
+    else:
+        raise ValueError("mode should be either 'thread' or 'process'")
+
+
+def _map_async(
     iterable,
     func,
     num_process=30,
@@ -149,7 +190,7 @@ def map_async(
         return ret.get()
 
 
-def map_async_with_thread(
+def _map_async_with_thread(
     iterable,
     func,
     num_thread=30,

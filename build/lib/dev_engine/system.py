@@ -1,11 +1,33 @@
 import subprocess
+import os.path as osp
+import os
 
 
-def run_cmd(cmd, verbose=False, async_cmd=False, fault_tolerance=False):
+def listdir_fd(
+    path: str, pattern: str = None, postfix: str = None, num_threads: int = 64
+):
+    path = osp.abspath(path)
+    if pattern is not None:
+        stdout = run_cmd(f"fd -j {num_threads} {pattern} --full-path {path}").stdout
+    elif postfix is not None:
+        stdout = run_cmd(f"fd -j {num_threads} . {path} -e {postfix}").stdout
+    else:
+        raise ValueError("Either pattern or postfix must be provided")
+    return stdout.splitlines()
+
+
+def run_cmd(
+    cmd: str,
+    verbose: bool = False,
+    async_cmd: bool = False,
+    fault_tolerance: bool = False,
+) -> subprocess.CompletedProcess:
     # print(cmd)
     if verbose:
         assert not async_cmd, "async_cmd is not supported when verbose=True"
-        popen = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        popen = subprocess.Popen(
+            cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+        )
         lines = []
         for line in popen.stdout:
             line = line.rstrip().decode("utf-8")
@@ -21,7 +43,9 @@ def run_cmd(cmd, verbose=False, async_cmd=False, fault_tolerance=False):
     else:
         if not async_cmd:
             # decode bug fix: https://stackoverflow.com/questions/73545218/utf-8-encoding-exception-with-subprocess-run
-            ret = subprocess.run(cmd, shell=True, capture_output=True, text=True, encoding="cp437")
+            ret = subprocess.run(
+                cmd, shell=True, capture_output=True, text=True, encoding="cp437"
+            )
             if ret.returncode != 0 and not fault_tolerance:
                 raise RuntimeError(
                     f"Failed to run command: {cmd}\nERROR {ret.stderr}\nSTDOUT{ret.stdout}"
