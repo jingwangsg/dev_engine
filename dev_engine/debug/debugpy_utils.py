@@ -27,11 +27,10 @@ def setup_debugpy(endpoint="localhost", port=5678, ranks=[0]):
     port += rank
 
     pid = os.getpid()
-    print(colored(f"Launching debugpy on {endpoint}:{port} for pid {pid}", "red"))
 
     try:
         debugpy.listen((endpoint, port))
-        print(colored(f"Waiting for debugger attach on {endpoint}:{port}", "red"))
+        print(colored(f"Waiting for debugger attach on {endpoint}:{port} (process {pid})", "red"))
         debugpy.wait_for_client()
     except Exception as e:
         print(
