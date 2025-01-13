@@ -215,9 +215,13 @@ def custom_args_to_string(obj: Any) -> str:
 icecream_debugger = IceCreamDebugger(argToStringFunction=custom_args_to_string)
 
 
-def objinfo(*obj: Any) -> str:
+def ic(*obj: Any, vb=False) -> str:
     call_frame = inspect.currentframe().f_back
-    return icecream_debugger._format(call_frame, *obj)
+    output_str = icecream_debugger._format(call_frame, *obj)
+    if vb:
+        print(output_str)
+    else:
+        return output_str
 
 
 def trace(message: str, rank0_only: bool = True) -> None:
