@@ -4,6 +4,8 @@ import numpy as np
 from dev_engine import logging as log
 from einops import rearrange
 import torchvision
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 
 def maybe_denormalize_tensor(tensor: torch.Tensor):
@@ -39,7 +41,7 @@ def write_video(
 
 
 def write_image(
-    tensor: Image | np.ndarray | torch.Tensor, path: str, input_format="h w c"
+    tensor: Image | np.ndarray | torch.Tensor, path: str="example.png", input_format="h w c"
 ):
     if isinstance(tensor, torch.Tensor):
         tensor = tensor.detach().cpu().numpy()
@@ -57,3 +59,23 @@ def write_image(
         img = tensor
 
     img.save(path)
+
+def draw_heatmap(tensor: torch.Tensor | np.ndarray, path: str = "example.png"):
+    if isinstance(tensor, torch.Tensor):
+        if torch.is_floating_point(tensor):
+            tensor = tensor.float()
+        tensor = tensor.detach().cpu().numpy()
+    assert tensor.ndim == 2, "Heatmap must be 2D"
+    plt.clf()
+
+    sns.heatmap(tensor, cmap="viridis").get_figure().savefig(path)
+
+
+def draw_histogram(tensor: torch.Tensor | np.ndarray, path: str = "example.png"):
+    if isinstance(tensor, torch.Tensor):
+        if torch.is_floating_point(tensor):
+            tensor = tensor.float()
+        tensor = tensor.detach().cpu().numpy()
+    plt.clf()
+
+    sns.histplot(tensor).get_figure().savefig(path)

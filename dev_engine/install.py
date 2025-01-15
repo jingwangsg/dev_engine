@@ -6,17 +6,17 @@ from dev_engine.debug import (
     ipdb_breakpoint,
     setup_debugpy,
 )
+from dev_engine.debug.global_ops import set_object, del_object, save_object, load_object, get_object
 from dev_engine import logging as log
-from dev_engine.debug.visualize import write_image, write_video
+from dev_engine.debug.visualize import write_image, write_video, draw_heatmap, draw_histogram
 import builtins
-
 
 def install_distributed():
     log.debug("Installing distributed builtins")
 
-    builtins.__barrier = torch.distributed.barrier
-    builtins.__rank = torch.distributed.get_rank
-    builtins.__world_size = torch.distributed.get_world_size
+    builtins.dist_barrier = torch.distributed.barrier
+    builtins.dist_rank = torch.distributed.get_rank
+    builtins.dist_world_size = torch.distributed.get_world_size
 
 
 def install_debug():
@@ -27,6 +27,12 @@ def install_debug():
     builtins.pdb_breakpoint = pdb_breakpoint
     builtins.ipdb_breakpoint = ipdb_breakpoint
 
+    builtins._set = set_object
+    builtins._del = del_object
+    builtins._save = save_object
+    builtins._load = load_object
+    builtins._get = get_object
+
     setup_debugpy()
 
 
@@ -34,6 +40,8 @@ def install_visualize():
     log.debug("Installing visualize builtins")
     builtins.write_image = write_image
     builtins.write_video = write_video
+    builtins.draw_heatmap = draw_heatmap
+    builtins.draw_histogram = draw_histogram
 
 
 def install_all():

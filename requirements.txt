@@ -34,3 +34,4 @@ pathos==0.3.0
 h5py==3.11.0
 debugpy
 icecream
+seaborn
