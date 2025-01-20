@@ -6,9 +6,9 @@ from dev_engine.debug import (
     ipdb_breakpoint,
     setup_debugpy,
 )
-from dev_engine.debug.global_ops import set_object, del_object, save_object, load_object, get_object
+from dev_engine.debug.global_ops import set_object, del_object, save_object, load_object, get_object, object_in_disk, object_in_store
 from dev_engine import logging as log
-from dev_engine.debug.visualize import write_image, write_video, draw_heatmap, draw_histogram
+from dev_engine.debug.visualize import write_image, write_video, write_file, draw_heatmap, draw_histogram, draw_barplot
 import builtins
 
 def install_distributed():
@@ -32,16 +32,20 @@ def install_debug():
     builtins._save = save_object
     builtins._load = load_object
     builtins._get = get_object
+    builtins._in_disk = object_in_disk
+    builtins._in_store = object_in_store
 
     setup_debugpy()
 
 
 def install_visualize():
     log.debug("Installing visualize builtins")
+    builtins.write_file = write_file
     builtins.write_image = write_image
     builtins.write_video = write_video
     builtins.draw_heatmap = draw_heatmap
     builtins.draw_histogram = draw_histogram
+    builtins.draw_barplot = draw_barplot
 
 
 def install_all():

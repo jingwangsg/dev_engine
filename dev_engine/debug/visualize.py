@@ -24,12 +24,18 @@ def maybe_denormalize_ndarray(array: np.ndarray):
     return array
 
 
+def write_file(obj, path: str = "example.txt"):
+    with open(path, "w") as f:
+        f.write(str(obj))
+
+
 def write_video(
     tensor: torch.Tensor | np.ndarray,
     input_format: str = "t h w c",
     path="example.mp4",
     fps=1,
 ):
+    log.debug(f"Writing video to {path}")
     if input_format != "t h w c":
         tensor = rearrange(tensor, f"{input_format} -> t h w c")
     if isinstance(tensor, np.ndarray):
@@ -41,8 +47,11 @@ def write_video(
 
 
 def write_image(
-    tensor: Image | np.ndarray | torch.Tensor, path: str="example.png", input_format="h w c"
+    tensor: Image | np.ndarray | torch.Tensor,
+    path: str = "example.png",
+    input_format="h w c",
 ):
+    log.debug(f"Writing image to {path}")
     if isinstance(tensor, torch.Tensor):
         tensor = tensor.detach().cpu().numpy()
         if input_format != "h w c":
@@ -60,7 +69,9 @@ def write_image(
 
     img.save(path)
 
+
 def draw_heatmap(tensor: torch.Tensor | np.ndarray, path: str = "example.png"):
+    log.debug(f"Drawing heatmap to {path}")
     if isinstance(tensor, torch.Tensor):
         if torch.is_floating_point(tensor):
             tensor = tensor.float()
@@ -72,6 +83,7 @@ def draw_heatmap(tensor: torch.Tensor | np.ndarray, path: str = "example.png"):
 
 
 def draw_histogram(tensor: torch.Tensor | np.ndarray, path: str = "example.png"):
+    log.debug(f"Drawing histogram to {path}")
     if isinstance(tensor, torch.Tensor):
         if torch.is_floating_point(tensor):
             tensor = tensor.float()
@@ -79,3 +91,14 @@ def draw_histogram(tensor: torch.Tensor | np.ndarray, path: str = "example.png")
     plt.clf()
 
     sns.histplot(tensor).get_figure().savefig(path)
+
+
+def draw_barplot(tensor: torch.Tensor | np.ndarray, path: str = "example.png"):
+    log.debug(f"Drawing barplot to {path}")
+    if isinstance(tensor, torch.Tensor):
+        if torch.is_floating_point(tensor):
+            tensor = tensor.float()
+        tensor = tensor.detach().cpu().numpy()
+    plt.clf()
+
+    sns.barplot(x=np.arange(tensor.shape[0]), y=tensor).get_figure().savefig(path)

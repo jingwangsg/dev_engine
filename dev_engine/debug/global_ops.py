@@ -37,3 +37,11 @@ def load_object(name):
 
     with open(path, "rb") as f:
         return load(f)
+
+def object_in_disk(name):
+    path = osp.join(obj_tmp_dir, name)
+    return osp.exists(path)
+
+def object_in_store(name):
+    return name in object_store
+    
