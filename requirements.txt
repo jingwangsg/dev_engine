@@ -35,3 +35,4 @@ h5py==3.11.0
 debugpy
 icecream
 seaborn
+loguru

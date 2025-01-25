@@ -2,15 +2,22 @@ import subprocess
 import os.path as osp
 import os
 
+HOMEBREW_BIN = "/mnt/amlfs-01/home/jingwang/homebrew/bin"
+
 
 def listdir_fd(
     path: str, pattern: str = None, postfix: str = None, num_threads: int = 64
 ):
+    fd_executable = osp.join(HOMEBREW_BIN, "fd")
     path = osp.abspath(path)
     if pattern is not None:
-        stdout = run_cmd(f"fd -j {num_threads} {pattern} --full-path {path}").stdout
+        stdout = run_cmd(
+            f"{fd_executable} -j {num_threads} {pattern} --full-path {path}"
+        ).stdout
     elif postfix is not None:
-        stdout = run_cmd(f"fd -j {num_threads} . {path} -e {postfix}").stdout
+        stdout = run_cmd(
+            f"{fd_executable} -j {num_threads} . {path} -e {postfix}"
+        ).stdout
     else:
         raise ValueError("Either pattern or postfix must be provided")
     return stdout.splitlines()
