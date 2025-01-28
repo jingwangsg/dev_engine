@@ -73,15 +73,16 @@ class imap_async:
         if not os.getenv("DISABLE_PARALLEL", False):
             if mode == "thread":
                 self.executor = ThreadingPool(num_workers)
+                # https://github.com/uqfoundation/pathos/issues/111
+                self.executor.restart()
             elif mode == "process":
                 self.executor = ProcessPool(num_workers)
+                # https://github.com/uqfoundation/pathos/issues/111
+                self.executor.restart()
             else:
                 raise ValueError("mode must be either 'thread' or 'process'")
         else:
             self.executor = None
-        
-        # https://github.com/uqfoundation/pathos/issues/111
-        self.executor.restart()
 
     def _producer(self):
         """
@@ -163,10 +164,7 @@ class imap_async:
         # Handle synchronous execution if parallel processing is disabled
         if os.getenv("DISABLE_PARALLEL", False):
             for item in self.iterable:
-                try:
-                    yield item, self.func(item)
-                except Exception as e:
-                    log.error(f"Error processing item {item}: {str(e)}")
+                yield item, self.func(item)
             return
 
         self.start_producer()
@@ -209,9 +207,7 @@ class imap_async:
                         else:
                             yield future._input, ret
                     except Exception as e:
-                        log.error(
-                            f"Error processing task {future._input}: {str(e)}"
-                        )
+                        log.error(f"Error processing task {future._input}: {str(e)}")
 
                 # Check if all work is complete
                 if (
