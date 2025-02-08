@@ -9,15 +9,6 @@ from dev_engine import logging as log
 import builtins
 
 
-def install_distributed():
-    log.debug("Installing distributed builtins")
-    import torch
-
-    builtins.dist_barrier = torch.distributed.barrier
-    builtins.dist_rank = torch.distributed.get_rank
-    builtins.dist_world_size = torch.distributed.get_world_size
-
-
 def install_debug():
     from dev_engine.debug.global_ops import (
         set_object,
@@ -72,7 +63,7 @@ def install_visualize():
     builtins.draw_barplot = draw_barplot
 
 
-def install_nnutils():
+def install_torch_utils():
     try:
         import torch
     except ImportError:
@@ -81,10 +72,14 @@ def install_nnutils():
 
     from dev_engine.debug.nn_utils import param_info
 
+    builtins.dist_barrier = torch.distributed.barrier
+    builtins.dist_rank = torch.distributed.get_rank
+    builtins.dist_world_size = torch.distributed.get_world_size
+
     builtins.param_info = param_info
 
 
 def install_all():
     install_debug()
-    install_distributed()
+    install_torch_utils()
     install_visualize()
