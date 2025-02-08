@@ -24,11 +24,6 @@ def maybe_denormalize_ndarray(array: np.ndarray):
     return array
 
 
-def write_file(obj, path: str = "example.txt"):
-    with open(path, "w") as f:
-        f.write(str(obj))
-
-
 def write_video(
     tensor: torch.Tensor | np.ndarray,
     input_format: str = "t h w c",
