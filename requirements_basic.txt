@@ -1,0 +1,9 @@
+debugpy
+icecream
+loguru
+dill
+termcolor
+seaborn
+polars
+pandas
+numpy

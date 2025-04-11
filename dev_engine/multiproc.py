@@ -211,9 +211,9 @@ class imap_async:
 
                 # Check if all work is complete
                 if (
-                    self.iterable_is_over
-                    and self.task_queue.empty()
-                    and self._is_not_done_empty()
+                    self.iterable_is_over         # no new task
+                    and self.task_queue.empty()   # wait to run
+                    and self._is_not_done_empty() # wait to finish
                 ):
                     break
 
