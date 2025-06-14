@@ -36,3 +36,5 @@ debugpy
 icecream
 seaborn
 loguru
+viztracer
+objprint

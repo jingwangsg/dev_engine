@@ -12,6 +12,6 @@ def pdb_breakpoint():
         dist.barrier()
 
 def ipdb_breakpoint():
-    import ipdb; ipdb.set_trace()
+    import ipdb; ipdb.set_trace(context=0)
     if dist.is_initialized():
         dist.barrier()

@@ -91,9 +91,6 @@ logger = Logger(
     extra={},
 )
 
-atexit.register(logger.remove)
-
-
 def _add_relative_path(record: dict[str, Any]) -> None:
     start = os.getcwd()
     record["extra"]["relative_path"] = os.path.relpath(record["file"].path, start)
