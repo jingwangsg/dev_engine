@@ -56,7 +56,7 @@ def omni_read(path: str):
 
 def install_debug(breakpoint_type: str = "ipdb"):
     logger.debug(f"Installing debug builtins with breakpoint: {breakpoint_type}")
-    from dev_engine.debug.global_ops import (
+    from dev_engine.debug.debug_tools import (
         set_object,
         del_object,
         save_object,
