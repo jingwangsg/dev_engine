@@ -1,6 +1,7 @@
 import json
 from typing import Sequence
-
+import subprocess
+import os
 import dill
 
 
@@ -92,3 +93,19 @@ def load_csv(fn, delimiter=",", has_header=True):
 def save_csv(obj, fn, delimiter=","):
     df = pl.DataFrame(obj)
     df.write_csv(fn, separator=delimiter, quote_style="non_numeric")
+
+
+def list_files(root_dir, fd_args=""):
+    cmd = f"cd {root_dir} && $HOME/homebrew/bin/fd {fd_args}"
+
+    paths = (
+        subprocess.run(cmd, shell=True, capture_output=True, text=True)
+        .stdout.decode("utf-8")
+        .splitlines()
+    )
+
+    paths = [os.path.join(root_dir, path) for path in paths]
+
+    print(f"Found {len(paths)} files in {root_dir} with fd: {fd_args}")
+
+    return paths

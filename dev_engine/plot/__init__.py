@@ -33,22 +33,56 @@ def get_rainbow_color():
     rainbow_color_idx = (rainbow_color_idx + 1) % len(rainbow_palette)
     return color
 
-def draw_line(rgb, src_xy, dst_xy, linewidth, color=get_rainbow_color):
-    if callable(color):
-        color = color()
+def draw_lines(rgb, xy, linewidth=2, color=get_rainbow_color):
+    """
+    Draw lines on an RGB image using specified coordinates and color.
+    Args:
+        rgb (PIL.Image): RGB image to draw on.
+        xy (torch.Tensor or np.ndarray): Coordinates of the lines to draw.
+            Can be 1D or 2D array-like structure.
+        linewidth (int): Width of the lines to draw.
+        color (tuple or callable): Color of the lines. If callable, it should return a color tuple.
+    
+    Mode:
+        ndim == 2: xy is a 2D array of shape (N, 2) where N is the number of lines.
+        ndim == 3: xy is a 3D array of shape (M, N, 2) where M is the number of lines and N is the number of points per line.
+    """
 
     draw = ImageDraw.Draw(rgb)
-    if isinstance(src_xy, torch.Tensor):
-        src_xy = src_xy.cpu().numpy()
-    if isinstance(dst_xy, torch.Tensor):
-        dst_xy = dst_xy.cpu().numpy()
+    if isinstance(xy, torch.Tensor):
+        xy = xy.cpu().numpy()
 
-    # Convert coordinates to integers and handle numpy arrays
-    src_xy = np.round(src_xy).astype(int)
-    dst_xy = np.round(dst_xy).astype(int)
-    draw.line(
-        (src_xy[0], src_xy[1], dst_xy[0], dst_xy[1]),
-        fill=tuple(color),
-        width=linewidth,
-    )
+    if xy.ndim == 2:
+        if callable(color):
+            cur_color = color()
+        else:
+            cur_color = color
+        # Convert coordinates to integers and handle numpy arrays
+        xy = np.round(xy).astype(int)
+        for j in range(xy.shape[0]-1):
+            src_xy = xy[j]
+            dst_xy = xy[j + 1]
+            draw.line(
+                (src_xy[0], src_xy[1], dst_xy[0], dst_xy[1]),
+                fill=tuple(cur_color),
+                width=linewidth,
+            )
+    elif xy.ndim == 3:
+        xy = np.round(xy).astype(int)
+
+        for i in range(xy.shape[0]):
+            if callable(color):
+                cur_color = color()
+            else:
+                cur_color = color
+            for j in range(xy.shape[1]-1):
+                src_xy = xy[i, j]
+                dst_xy = xy[i, j + 1]
+                draw.line(
+                    (src_xy[0], src_xy[1], dst_xy[0], dst_xy[1]),
+                    fill=tuple(cur_color),
+                    width=linewidth,
+                )
+    else:
+        raise ValueError("xy must be 2D or 3D arrays.")
     return rgb

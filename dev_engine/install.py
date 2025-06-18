@@ -19,6 +19,40 @@ except ImportError:
 else:
     is_torch_available = True
 
+def omni_read(path: str):
+    if path.endswith(".pkl") or path.endswith(".pickle") or path.endswith(".pt"):
+        try:
+            data = torch.load(path, map_location="cpu", weights_only=False)
+        except Exception as e:
+            import dill
+            print(f"Error loading {path}: {e}, trying dill...")
+            data = dill.load(open(path, "rb"))
+    elif path.endswith(".json"):
+        import json
+        with open(path, "r") as f:
+            data = json.load(f)
+    elif path.endswith(".yaml") or path.endswith(".yml"):
+        import yaml
+        with open(path, "r") as f:
+            data = yaml.load(f)
+    elif path.endswith(".csv"):
+        import polars as pl
+        data = pl.read_csv(path)
+    elif path.endswith(".parquet"):
+        import polars as pl
+        data = pl.read_parquet(path)
+    elif path.endswith(".h5") or path.endswith(".hdf5"):
+        import h5py
+        data = h5py.File(path, "r")
+    elif path.endswith(".mp4") or path.endswith(".avi") or path.endswith(".mov") or path.endswith(".webm"):
+        import decord
+        data = decord.VideoReader(path)
+        frames = data.get_batch(range(len(data)))
+        return frames
+    else:
+        raise ValueError(f"Unsupported file extension: {path}")
+
+
 
 def install_debug(breakpoint_type: str = "ipdb"):
     logger.debug(f"Installing debug builtins with breakpoint: {breakpoint_type}")
@@ -53,6 +87,7 @@ def install_debug(breakpoint_type: str = "ipdb"):
     builtins._in_store = object_in_store
     builtins.capture_calls = capture_calls
     builtins.print_file = print_file
+    builtins.omr = omni_read
 
     if breakpoint_type == "debugpy":
         setup_debugpy()
