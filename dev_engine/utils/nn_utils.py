@@ -38,23 +38,24 @@ def set_eval_mode_frozen_modules(model: nn.Module):
         else:
             set_eval_mode_frozen_modules(module)
 
+
 def get_param_counts(model: nn.Module):
     """
     Get the number of parameters recursively.
     """
     param_count = 0
     ret_dict = dict()
-    
+
     # Count parameters in submodules first
     for module_name, module in model.named_children():
         param_count += get_param_counts(module)
         ret_dict[module_name] = get_param_counts(module)
-    
+
     # Add up direct parameters (not in submodules)
     for param in model.parameters(recurse=False):
         param_count += param.numel()
-    
+
     ret_dict["__class__"] = model.__class__
     ret_dict["__total__"] = param_count
-    
+
     return ret_dict
