@@ -1,10 +1,10 @@
-from dev_engine.logging import ic
+from dev_engine.logging.logging import ic
 from dev_engine.debug import (
     setup_debugpy,
 )
 import ipdb
 import debugpy
-from dev_engine import logging as log
+from dev_engine.logging import logging as log
 import builtins
 from loguru import logger
 import coredumpy
@@ -67,7 +67,7 @@ def install_debug(breakpoint_type: str = "ipdb"):
         capture_calls,
     )
 
-    def print_file(obj, path: str = "example.txt"):
+    def fprint(obj, path: str = "example.txt"):
         if osp.exists(path):
             with open(path, "a") as f:
                 f.write(str(obj) + "\n")
@@ -86,7 +86,7 @@ def install_debug(breakpoint_type: str = "ipdb"):
     builtins._in_disk = object_in_disk
     builtins._in_store = object_in_store
     builtins.capture_calls = capture_calls
-    builtins.print_file = print_file
+    builtins.fprint = fprint
     builtins.omr = omni_read
 
     if breakpoint_type == "debugpy":
@@ -103,12 +103,13 @@ def install_debug(breakpoint_type: str = "ipdb"):
 
 
 def install_visualize():
-    from dev_engine.debug.visualize import (
+    from dev_engine.visualize import (
         write_image,
         write_video,
         draw_heatmap,
         draw_histogram,
         draw_barplot,
+        draw_lines,
     )
 
     log.debug("Installing visualize builtins")
@@ -117,6 +118,7 @@ def install_visualize():
     builtins.draw_heatmap = draw_heatmap
     builtins.draw_histogram = draw_histogram
     builtins.draw_barplot = draw_barplot
+    builtins.draw_lines = draw_lines
 
 
 def install_torch_utils():

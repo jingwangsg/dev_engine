@@ -1,27 +1,6 @@
 import subprocess
-import os.path as osp
 import os
-
-HOMEBREW_BIN = "/mnt/amlfs-01/home/jingwang/homebrew/bin"
-
-
-def listdir_fd(
-    path: str, pattern: str = None, postfix: str = None, num_threads: int = 64
-):
-    fd_executable = osp.join(HOMEBREW_BIN, "fd")
-    path = osp.abspath(path)
-    if pattern is not None:
-        stdout = run_cmd(
-            f"{fd_executable} -j {num_threads} {pattern} --full-path {path}"
-        ).stdout
-    elif postfix is not None:
-        stdout = run_cmd(
-            f"{fd_executable} -j {num_threads} . {path} -e {postfix}"
-        ).stdout
-    else:
-        raise ValueError("Either pattern or postfix must be provided")
-    return stdout.splitlines()
-
+import os.path as osp
 
 def run_cmd(
     cmd: str,
@@ -63,3 +42,19 @@ def run_cmd(
                 cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
             )
             return popen
+
+def list_files(root_dir, fd_args=""):
+    fd_executable = osp.expanduser("~/.homebrew/bin/fd")
+    assert osp.exists(fd_executable), f"fd executable not found at {fd_executable}"
+        
+    cmd = f"cd {root_dir} && {fd_executable} {fd_args}"
+
+    paths = subprocess.run(
+        cmd, shell=True, capture_output=True, text=True
+    ).stdout.splitlines()
+
+    paths = [os.path.join(root_dir, path) for path in paths]
+
+    print(f"Found {len(paths)} files in {root_dir} with fd: {fd_args}")
+
+    return paths

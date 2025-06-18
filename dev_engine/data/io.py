@@ -98,11 +98,9 @@ def save_csv(obj, fn, delimiter=","):
 def list_files(root_dir, fd_args=""):
     cmd = f"cd {root_dir} && $HOME/homebrew/bin/fd {fd_args}"
 
-    paths = (
-        subprocess.run(cmd, shell=True, capture_output=True, text=True)
-        .stdout.decode("utf-8")
-        .splitlines()
-    )
+    paths = subprocess.run(
+        cmd, shell=True, capture_output=True, text=True
+    ).stdout.splitlines()
 
     paths = [os.path.join(root_dir, path) for path in paths]
 
