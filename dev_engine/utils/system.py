@@ -44,7 +44,7 @@ def run_cmd(
             return popen
 
 def list_files(root_dir, fd_args=""):
-    fd_executable = osp.expanduser("~/.homebrew/bin/fd")
+    fd_executable = osp.expanduser("~/homebrew/bin/fd")
     assert osp.exists(fd_executable), f"fd executable not found at {fd_executable}"
         
     cmd = f"cd {root_dir} && {fd_executable} {fd_args}"
