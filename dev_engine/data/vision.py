@@ -21,19 +21,24 @@ def smart_sampling(src_frames=None, src_fps=None, target_fps=None, target_frames
     return indices
 
 
-def smart_resize(frames, frame_size=512, divided_by_2=True):
+def smart_resize(frames, frame_size=512, divided_by_2=True, resize_when="larger_than"):
     """
     Args:
-        frames (torch.Tensor): (T, C, H, W)
+        frames (torch.Tensor): (T, C, H, W) or (C, H, W)
         frame_size (int, optional): target frame size. Defaults to 512.
 
     Returns:
-        torch.Tensor: (T, C, H', W')
+        torch.Tensor: (T, C, H', W') or (C, H', W')
     """
+    is_image = False
+    if len(frames.shape) == 3:
+        is_image = True
+        frames = frames.unsqueeze(0)
+
     orig_shape = [frames.shape[-2], frames.shape[-1]]
     target_shape = copy.deepcopy(orig_shape)
     aspect_ratio = orig_shape[0] / orig_shape[1]
-    if orig_shape[0] > frame_size or orig_shape[1] > frame_size:
+    if resize_when == "any" or (resize_when == "larger_than" and (orig_shape[0] > frame_size or orig_shape[1] > frame_size)):
         if orig_shape[0] > orig_shape[1]:
             target_shape = [frame_size, frame_size / aspect_ratio]
         else:
@@ -45,6 +50,9 @@ def smart_resize(frames, frame_size=512, divided_by_2=True):
 
     if target_shape != orig_shape:
         frames = torchvision.transforms.Resize(target_shape)(frames)
+
+    if is_image:
+        frames = frames.squeeze(0)
 
     return frames
 
