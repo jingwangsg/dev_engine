@@ -7,18 +7,25 @@ import time
 from torchcodec import VideoDecoder
 
 
-def smart_sampling(src_frames=None, src_fps=None, target_fps=None, target_frames=None):
+def read_video_with_sampling(
+    video_dec: VideoDecoder, target_fps: int = None, target_frames: int = None
+):
+    duration = video_dec.metadata.duration_seconds
+
+    timestamps = None
     if target_fps is not None:
-        # constant fps
-        stride = np.round(src_fps / target_fps).astype(int)
-        indices = np.arange(0, src_frames, stride)
+        timestamps = np.linspace(0, duration, target_fps)
     elif target_frames is not None:
-        # uniform sampling
-        indices = np.arange(0, target_frames) * (src_frames - 1) / (target_frames - 1)
-        indices = [0] + np.round(indices).astype(int).tolist()
+        timestamps = np.arange(0, target_frames) * duration / target_frames
     else:
         raise ValueError("Either fps or num_frames must be provided")
-    return indices
+
+    if timestamps is not None:
+        frames = video_dec.get_frames_played_at(timestamps).data
+    else:
+        frames = video_dec[:]
+
+    return frames
 
 
 def smart_resize(frames, frame_size=512, divided_by_2=True, resize_when="larger_than"):
@@ -38,7 +45,10 @@ def smart_resize(frames, frame_size=512, divided_by_2=True, resize_when="larger_
     orig_shape = [frames.shape[-2], frames.shape[-1]]
     target_shape = copy.deepcopy(orig_shape)
     aspect_ratio = orig_shape[0] / orig_shape[1]
-    if resize_when == "any" or (resize_when == "larger_than" and (orig_shape[0] > frame_size or orig_shape[1] > frame_size)):
+    if resize_when == "any" or (
+        resize_when == "larger_than"
+        and (orig_shape[0] > frame_size or orig_shape[1] > frame_size)
+    ):
         if orig_shape[0] > orig_shape[1]:
             target_shape = [frame_size, frame_size / aspect_ratio]
         else:

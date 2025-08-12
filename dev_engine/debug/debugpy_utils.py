@@ -27,6 +27,7 @@ def setup_debugpy(endpoint="localhost", port=5678, ranks=[0]):
     port += rank
 
     pid = os.getpid()
+    print(f"Setting up debugpy on {endpoint}:{port} (process {pid})")
 
     try:
         debugpy.listen((endpoint, port))
