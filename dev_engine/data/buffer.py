@@ -1,3 +1,4 @@
+# To properly support resuming, set ignore_data_skip for huggingface trainer
 import os
 import queue
 import threading
